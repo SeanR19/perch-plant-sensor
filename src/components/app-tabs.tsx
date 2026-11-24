@@ -19,7 +19,7 @@ export function AppTabs() {
       <NativeTabs.Trigger name="index">
         <NativeTabs.Trigger.Icon
           renderingMode="template"
-          src={require('@/assets/icons/nav/house.png')}
+          src={require('../assets/icons/nav/house.png')}
         />
         <NativeTabs.Trigger.Label hidden>Home</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
@@ -27,7 +27,7 @@ export function AppTabs() {
       <NativeTabs.Trigger name="plants">
         <NativeTabs.Trigger.Icon
           renderingMode="template"
-          src={require('@/assets/icons/nav/plant-pot.png')}
+          src={require('../assets/icons/nav/plant-pot.png')}
         />
         <NativeTabs.Trigger.Label hidden>Plants</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
@@ -35,7 +35,7 @@ export function AppTabs() {
       <NativeTabs.Trigger name="calendar">
         <NativeTabs.Trigger.Icon
           renderingMode="template"
-          src={require('@/assets/icons/nav/calendar-check.png')}
+          src={require('../assets/icons/nav/calendar-check.png')}
         />
         <NativeTabs.Trigger.Label hidden>Calendar</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
@@ -43,7 +43,7 @@ export function AppTabs() {
       <NativeTabs.Trigger name="notebook">
         <NativeTabs.Trigger.Icon
           renderingMode="template"
-          src={require('@/assets/icons/nav/notebook.png')}
+          src={require('../assets/icons/nav/notebook.png')}
         />
         <NativeTabs.Trigger.Label hidden>Notebook</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
