@@ -27,12 +27,12 @@ const BLUR_INTENSITY_PER_BAND = 8;
 
 /**
  * The fixed backdrop behind the home screen: the fern photo, the moonlit
- * monstera on top of it, and two gradients that darken toward the bottom.
- * Layer boxes are straight from Figma, scaled to the screen width so the
- * photos still cover wider phones.
+ * monstera on top of it, and Rectangle 1's progressive blur and fade to
+ * black. Layers follow Figma frame 85:230; boxes are straight from Figma,
+ * scaled to the screen width so the photos still cover wider phones.
  *
- * Not included: the Figma "image 1" raindrop layer, which is at 1% opacity
- * and doesn't show in the design.
+ * Not included, as in 85:230: the other home frame's "Rectangle 2" (a short
+ * gradient that stopped mid-screen) and its 1%-opacity raindrop layer.
  */
 export function HomeBackground() {
   const { width } = useWindowDimensions();
@@ -77,17 +77,6 @@ export function HomeBackground() {
           stops={[
             { offset: 0, color: 'rgba(0, 0, 0, 0)' },
             { offset: 1, color: 'rgb(0, 0, 0)' },
-          ]}
-        />
-      </View>
-
-      {/* Rectangle 2: Figma puts black at 405.6% of the height, so at the
-          rectangle's bottom edge it has only reached 100/405.6 ≈ 25%. */}
-      <View style={box(0, 0, DESIGN_WIDTH, 476)}>
-        <Gradient
-          stops={[
-            { offset: 0, color: 'rgba(0, 0, 0, 0)' },
-            { offset: 1, color: 'rgba(0, 0, 0, 0.2466)' },
           ]}
         />
       </View>
