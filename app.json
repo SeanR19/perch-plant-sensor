@@ -1,14 +1,18 @@
 {
   "expo": {
-    "name": "perch-plant-sensor-app",
+    "name": "Perch",
     "slug": "perch-plant-sensor-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "perchplantsensorapp",
+    "scheme": "perch",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "bundleIdentifier": "com.seanhammond.perch-plant-sensor-app",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -37,6 +41,7 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "owner": "seanhammond"
   }
 }

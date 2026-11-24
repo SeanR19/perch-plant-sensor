@@ -1,98 +1,83 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { GlassCard } from '@/components/glass-card';
+import { PlantCard } from '@/components/plant-card';
+import { Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
+import { MOCK_PLANTS, moistureStatus } from '@/lib/mock-plants';
 
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
+export default function HomeScreen() {
+  const c = useTheme();
+  const insets = useSafeAreaInsets();
+  const thirsty = MOCK_PLANTS.filter((p) => moistureStatus(p.reading.moisture) !== 'good').length;
+
   return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
+    <View style={[styles.root, { backgroundColor: c.background }]}>
+      {/* Soft colour behind the glass — Liquid Glass over a flat fill just
+          looks grey, it needs something to bend. */}
+      <View style={[styles.glow, { backgroundColor: c.glow1, top: -80, left: -60 }]} />
+      <View style={[styles.glow, { backgroundColor: c.glow2, top: 260, right: -120 }]} />
+      <View style={[styles.glow, { backgroundColor: c.glow3, bottom: -60, left: -40 }]} />
+
+      <ScrollView
+        contentContainerStyle={{
+          paddingTop: insets.top + Spacing.three,
+          paddingBottom: insets.bottom + Spacing.five,
+          paddingHorizontal: Spacing.three,
+          gap: Spacing.three,
+        }}
+      >
+        <View>
+          <Text style={[styles.eyebrow, { color: c.textSecondary }]}>Perch</Text>
+          <Text style={[styles.title, { color: c.textPrimary }]}>My Garden</Text>
+        </View>
+
+        <GlassCard style={styles.summary}>
+          <Summary value={MOCK_PLANTS.length} label="Plants" />
+          <Summary value={thirsty} label="Need water" />
+          <Summary value={MOCK_PLANTS.length} label="Sensors" />
+        </GlassCard>
+
+        {MOCK_PLANTS.map((plant) => (
+          <PlantCard key={plant.id} plant={plant} />
+        ))}
+      </ScrollView>
+    </View>
   );
 }
 
-export default function HomeScreen() {
+function Summary({ value, label }: { value: number; label: string }) {
+  const c = useTheme();
   return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
-
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
-
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
-
-        {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
+    <View style={styles.summaryItem}>
+      <Text style={[styles.summaryValue, { color: c.textPrimary }]}>{value}</Text>
+      <Text style={[styles.summaryLabel, { color: c.textSecondary }]}>{label}</Text>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
+  root: { flex: 1, overflow: 'hidden' },
+  glow: {
+    position: 'absolute',
+    width: 320,
+    height: 320,
+    borderRadius: 160,
+    opacity: 0.7,
   },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
-  },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
-  },
-  title: {
-    textAlign: 'center',
-  },
-  code: {
+  eyebrow: {
+    fontSize: 13,
+    fontWeight: '600',
+    letterSpacing: 1.5,
     textTransform: 'uppercase',
   },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
+  title: { fontSize: 34, fontWeight: '700', marginTop: 2 },
+  summary: {
+    flexDirection: 'row',
+    paddingVertical: Spacing.three,
   },
+  summaryItem: { flex: 1, alignItems: 'center' },
+  summaryValue: { fontSize: 26, fontWeight: '700' },
+  summaryLabel: { fontSize: 12, marginTop: 2 },
 });
