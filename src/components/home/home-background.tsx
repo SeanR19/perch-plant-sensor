@@ -6,6 +6,14 @@ import { Gradient } from '@/components/gradient';
 
 /** Width of the Figma frame (WP-Version-Blackhawk-Mobile, 169:65). */
 const DESIGN_WIDTH = 375;
+/** Bottom edge of the photo layers and the blur, in Figma points. */
+const BACKGROUND_BOTTOM = 838;
+/**
+ * Where the blur-to-black layer starts, in Figma points from the top. Figma
+ * has 302, just above the stat cards, but its hard top edge sat too high on
+ * the phone. Raise or lower this to move it; the bottom stays put.
+ */
+const BLUR_TOP = 420;
 
 /**
  * The fixed backdrop behind the home screen: the fern photo, the moonlit
@@ -37,7 +45,7 @@ export function HomeBackground() {
       />
 
       {/* Rectangle 1: a 13.5px backdrop blur, fading to black at the bottom. */}
-      <View style={box(0, 302, DESIGN_WIDTH, 536)}>
+      <View style={box(0, BLUR_TOP, DESIGN_WIDTH, BACKGROUND_BOTTOM - BLUR_TOP)}>
         <BlurView intensity={20} style={StyleSheet.absoluteFill} />
         <Gradient
           stops={[
