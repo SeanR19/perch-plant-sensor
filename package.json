@@ -35,6 +35,7 @@
     "@types/react": "~19.2.2",
     "eslint": "^9.0.0",
     "eslint-config-expo": "~57.0.2",
+    "sharp": "^0.35.5",
     "typescript": "~6.0.3"
   },
   "scripts": {
@@ -43,7 +44,8 @@
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
     "build:ios": "eas build --profile development --platform ios",
-    "build:ios:sim": "eas build --profile development-simulator --platform ios"
+    "build:ios:sim": "eas build --profile development-simulator --platform ios",
+    "icons:nav": "node ./scripts/generate-nav-icons.js"
   },
   "private": true
 }
