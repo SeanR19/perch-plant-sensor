@@ -41,7 +41,3 @@ example
 # generated native folders
 /ios
 /android
-
-# Allo is a licensed typeface, and this repo is public. Copy Allo-Light,
-# -Regular, -Medium and -SemiBold .otf files here from the font package.
-src/assets/fonts/*.otf

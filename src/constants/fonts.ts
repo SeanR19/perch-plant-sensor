@@ -3,7 +3,10 @@
  * React Native — set `fontFamily` to one of these and leave `fontWeight` unset,
  * or iOS will try to synthesise a weight on top.
  *
- * Loaded in the root layout from src/assets/fonts.
+ * Loaded in the root layout from src/assets/fonts: the static .otf cuts from
+ * the official Allo release (github.com/joshpuckett/allo, fonts/otf), under
+ * the SIL Open Font License — see OFL.txt beside them. The allo-font npm
+ * package is web-only (CSS and WOFF2), which iOS can't load.
  */
 export const Allo = {
   light: 'Allo-Light',
