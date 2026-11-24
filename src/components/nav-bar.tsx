@@ -32,8 +32,13 @@ const ICON_SIZE = 23;
 /** Distance from the bottom of the screen on a home-indicator iPhone. */
 const BOTTOM_GAP = 14;
 
-/** How much the bubble swells while it's being dragged. */
-const DRAG_SCALE = 1.15;
+/**
+ * How much the bubble swells while it's being dragged — enough to spill past
+ * the bar's edges, like the iOS 26 tab bar. 46pt tall × 1.4 ≈ 64pt, about 5pt
+ * beyond the 54pt bar top and bottom.
+ */
+const DRAG_SCALE_X = 1.2;
+const DRAG_SCALE_Y = 1.4;
 const SPRING = { damping: 18, stiffness: 220, mass: 0.8 };
 
 const CAN_USE_LIQUID_GLASS = isLiquidGlassAvailable();
@@ -126,36 +131,12 @@ export function NavBar({ children, style: _tabListStyle, ...rest }: ViewProps) {
   const bubbleStyle = useAnimatedStyle(() => ({
     transform: [
       { translateX: x.get() },
-      { scale: interpolate(held.get(), [0, 1], [1, DRAG_SCALE]) },
+      { scaleX: interpolate(held.get(), [0, 1], [1, DRAG_SCALE_X]) },
+      { scaleY: interpolate(held.get(), [0, 1], [1, DRAG_SCALE_Y]) },
     ],
   }));
   // The solid design fill fades out while held, letting the glass show.
   const fillStyle = useAnimatedStyle(() => ({ opacity: 1 - held.get() }));
-
-  const content = (
-    <>
-      <Animated.View style={[styles.bubble, bubbleStyle]} pointerEvents="none">
-        {CAN_USE_LIQUID_GLASS && (
-          <GlassView
-            glassEffectStyle={{
-              style: isDragging ? 'clear' : 'none',
-              animate: true,
-              animationDuration: 0.2,
-            }}
-            style={styles.bubbleLayer}
-          />
-        )}
-        <Animated.View
-          style={[
-            styles.bubbleLayer,
-            { backgroundColor: NavBarColors.selection },
-            fillStyle,
-          ]}
-        />
-      </Animated.View>
-      <View style={styles.row}>{children}</View>
-    </>
-  );
 
   return (
     <View
@@ -164,21 +145,41 @@ export function NavBar({ children, style: _tabListStyle, ...rest }: ViewProps) {
       pointerEvents="box-none"
     >
       <GestureDetector gesture={pan}>
-        {CAN_USE_LIQUID_GLASS ? (
-          // Liquid Glass brings its own material; the Figma fill goes in as a
-          // tint rather than a background so it doesn't flatten the glass.
-          <GlassView
-            glassEffectStyle="regular"
-            tintColor={NavBarColors.fill}
-            style={styles.bar}
-          >
-            {content}
-          </GlassView>
-        ) : (
-          <BlurView intensity={40} style={[styles.bar, { backgroundColor: NavBarColors.fill }]}>
-            {content}
-          </BlurView>
-        )}
+        {/* The glass pill is only the backdrop. The bubble and tabs sit on top
+            of it rather than inside it, so nothing clips the bubble when it
+            swells past the bar's edges. */}
+        <View style={styles.bar}>
+          {CAN_USE_LIQUID_GLASS ? (
+            // Liquid Glass brings its own material; the Figma fill goes in as
+            // a tint rather than a background so it doesn't flatten the glass.
+            <GlassView
+              glassEffectStyle="regular"
+              tintColor={NavBarColors.fill}
+              style={styles.barBackground}
+            />
+          ) : (
+            <BlurView
+              intensity={40}
+              style={[styles.barBackground, { backgroundColor: NavBarColors.fill }]}
+            />
+          )}
+          <Animated.View style={[styles.bubble, bubbleStyle]} pointerEvents="none">
+            {CAN_USE_LIQUID_GLASS && (
+              <GlassView
+                glassEffectStyle={{
+                  style: isDragging ? 'clear' : 'none',
+                  animate: true,
+                  animationDuration: 0.2,
+                }}
+                style={styles.bubbleLayer}
+              />
+            )}
+            <Animated.View
+              style={[styles.bubbleLayer, { backgroundColor: NavBarColors.selection }, fillStyle]}
+            />
+          </Animated.View>
+          <View style={styles.row}>{children}</View>
+        </View>
       </GestureDetector>
     </View>
   );
@@ -235,9 +236,12 @@ const styles = StyleSheet.create({
   bar: {
     width: BAR_WIDTH,
     height: BAR_HEIGHT,
+    justifyContent: 'center',
+  },
+  barBackground: {
+    ...StyleSheet.absoluteFill,
     borderRadius: BAR_HEIGHT / 2,
     overflow: 'hidden',
-    justifyContent: 'center',
   },
   row: {
     flexDirection: 'row',
