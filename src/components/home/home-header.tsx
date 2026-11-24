@@ -19,7 +19,8 @@ export function HomeHeader({
   onSparklesPress?: () => void;
 }) {
   return (
-    <View style={styles.row}>
+    // box-none: the gaps between the buttons pass touches to the sheet behind.
+    <View style={styles.row} pointerEvents="box-none">
       <RoundGlassButton onPress={onMenuPress} accessibilityLabel="Menu">
         {/* Nudged half a point as in Figma, so the two-line glyph sits optically centred. */}
         <Image

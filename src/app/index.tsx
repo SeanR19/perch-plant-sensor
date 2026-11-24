@@ -18,7 +18,8 @@ const SHEET_REST_OFFSET = 447;
 
 /**
  * Home (Figma: WP-Version-Blackhawk-Mobile, 169:65). The photo, gauge and stat
- * cards stay put; the Care Overview sheet swipes up over them.
+ * cards stay put; the Care Overview sheet swipes up over them to fill the
+ * screen, passing behind the header buttons and logo.
  */
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
@@ -31,8 +32,9 @@ export default function HomeScreen() {
       <StatusBar style="light" />
       <HomeBackground />
 
-      <View style={{ paddingTop: headerTop }}>
-        <HomeHeader />
+      {/* Leaves room for the header, which is drawn last (below) so the
+          sheet can slide up behind it. */}
+      <View style={{ paddingTop: headerTop + HEADER_HEIGHT }}>
         <View style={{ marginTop: 71 }}>
           <HealthGauge score={garden.health} />
         </View>
@@ -44,13 +46,17 @@ export default function HomeScreen() {
       <CareOverviewSheet
         tasks={garden.tasks}
         restingTop={headerTop + SHEET_REST_OFFSET}
-        // Opens to just under the header, leaving the logo and buttons in view.
-        openTop={headerTop + HEADER_HEIGHT + HEADER_GAP}
+        headerBottom={headerTop + HEADER_HEIGHT}
       />
+
+      <View style={[styles.header, { top: headerTop }]} pointerEvents="box-none">
+        <HomeHeader />
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#000000' },
+  header: { position: 'absolute', left: 0, right: 0 },
 });

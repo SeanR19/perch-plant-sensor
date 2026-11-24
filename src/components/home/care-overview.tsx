@@ -1,11 +1,19 @@
 import BottomSheet, {
   BottomSheetScrollView,
   type BottomSheetBackgroundProps,
+  type BottomSheetHandleProps,
 } from '@gorhom/bottom-sheet';
 import { BlurView } from 'expo-blur';
 import { Image } from 'expo-image';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import Animated, {
+  Extrapolation,
+  interpolate,
+  useAnimatedStyle,
+  useSharedValue,
+  type SharedValue,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 
@@ -32,23 +40,46 @@ const PLACEHOLDER_CARD_ROWS = 8;
 /** Space under the content for the floating tab bar. */
 const TAB_BAR_CLEARANCE = 90;
 
+/** Sheet top corners at rest, as in Figma. They flatten once it's full screen. */
+const TOP_RADIUS = 20;
+/** Handle strip: 11pt above the 4pt bar, 4pt below. */
+const HANDLE_AREA_HEIGHT = 11 + 4 + 4;
+/** Title row's gap below the handle strip (16pt below the bar in Figma). */
+const TITLE_GAP = 12;
+/** Gap between the header's bottom and the title once the sheet is full screen. */
+const OPEN_TITLE_GAP = 16;
+/**
+ * The last stretch of the swipe up — as a fraction of the way between the two
+ * snap points — over which the handle fades and the corners flatten.
+ */
+const TOP_TRANSITION: [number, number] = [0.85, 1];
+
 /**
  * The dark "Care Overview" panel at the bottom of the home screen (Figma
  * frame 49081, 169:71), as a sheet: it rests where the design puts it, swipes
- * up to just under the header, and scrolls once it's open.
+ * up to fill the screen behind the header buttons, and scrolls once it's open.
  */
 export function CareOverviewSheet({
   tasks,
   restingTop,
-  openTop,
+  headerBottom,
 }: {
   tasks: { completed: number; total: number };
   /** Screen y of the sheet's top edge at rest. */
   restingTop: number;
-  /** Screen y of the sheet's top edge when swiped up. */
-  openTop: number;
+  /** Screen y of the header's bottom edge, which the open sheet slides behind. */
+  headerBottom: number;
 }) {
   const { height: windowHeight } = useWindowDimensions();
+  /** 0 at rest, 1 at full screen, fractional in between. */
+  const animatedIndex = useSharedValue(0);
+
+  // As the sheet rises behind the header, grow a spacer above the title so the
+  // content ends up just below the buttons instead of underneath them.
+  const openSpacer = headerBottom + OPEN_TITLE_GAP - HANDLE_AREA_HEIGHT - TITLE_GAP;
+  const spacerStyle = useAnimatedStyle(() => ({
+    height: interpolate(animatedIndex.get(), [0, 1], [0, openSpacer], Extrapolation.CLAMP),
+  }));
   const { bottom: safeBottom } = useSafeAreaInsets();
   const [segment, setSegment] = useState<Segment>('today');
   const progress = tasks.total > 0 ? tasks.completed / tasks.total : 0;
@@ -57,7 +88,8 @@ export function CareOverviewSheet({
   return (
     <BottomSheet
       index={0}
-      snapPoints={[windowHeight - restingTop, windowHeight - openTop]}
+      snapPoints={[windowHeight - restingTop, windowHeight]}
+      animatedIndex={animatedIndex}
       enableDynamicSizing={false}
       // Never closes: the rest position is the lowest it goes.
       enablePanDownToClose={false}
@@ -68,6 +100,7 @@ export function CareOverviewSheet({
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: safeBottom + TAB_BAR_CLEARANCE }}
       >
+        <Animated.View style={spacerStyle} />
         <View style={styles.titleRow}>
           <Text style={styles.title}>Care Overview</Text>
           <Image
@@ -135,19 +168,40 @@ export function CareOverviewSheet({
  * reading through once the sheet is swiped up over it; at rest it sits on an
  * already-blurred part of the photo, so it looks as designed.
  */
-function SheetBackground({ style }: BottomSheetBackgroundProps) {
+function SheetBackground({ style, animatedIndex }: BottomSheetBackgroundProps) {
+  const radiusStyle = useAnimatedStyle(() => {
+    const radius = interpolate(
+      animatedIndex.get(),
+      TOP_TRANSITION,
+      [TOP_RADIUS, 0],
+      Extrapolation.CLAMP,
+    );
+    return { borderTopLeftRadius: radius, borderTopRightRadius: radius };
+  });
   return (
-    <View pointerEvents="none" style={[style, styles.background]}>
+    <Animated.View pointerEvents="none" style={[style, styles.background, radiusStyle]}>
       <BlurView intensity={50} tint="dark" style={StyleSheet.absoluteFill} />
+    </Animated.View>
+  );
+}
+
+/** The grab handle fades out as the sheet reaches the top, behind the header. */
+function SheetHandle({ animatedIndex }: BottomSheetHandleProps) {
+  return (
+    <View style={styles.handleArea}>
+      <FadingHandle animatedIndex={animatedIndex} />
     </View>
   );
 }
 
-function SheetHandle() {
+function FadingHandle({ animatedIndex }: { animatedIndex: SharedValue<number> }) {
+  const fadeStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(animatedIndex.get(), TOP_TRANSITION, [1, 0], Extrapolation.CLAMP),
+  }));
   return (
-    <View style={styles.handleArea}>
+    <Animated.View style={fadeStyle}>
       <Image source={require('../../assets/home/sheet-handle.png')} style={styles.handle} />
-    </View>
+    </Animated.View>
   );
 }
 
@@ -184,8 +238,6 @@ const CARD_BORDER = 'rgba(65, 65, 65, 0.2)';
 const styles = StyleSheet.create({
   background: {
     backgroundColor: 'rgba(18, 18, 18, 0.6)',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
     overflow: 'hidden',
   },
   // The handle's touch area runs from the sheet's top edge to the title, so
@@ -204,7 +256,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     // 16pt below the handle in Figma; the handle area already holds 4 of it.
-    marginTop: 12,
+    marginTop: TITLE_GAP,
     marginHorizontal: 17,
     height: 23,
   },
