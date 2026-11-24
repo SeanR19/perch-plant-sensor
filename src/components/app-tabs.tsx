@@ -1,7 +1,5 @@
 import { NativeTabs } from 'expo-router/unstable-native-tabs';
 
-import { useTheme } from '@/hooks/use-theme';
-
 /**
  * The system tab bar — on iOS 26 that's Apple's own Liquid Glass bar, with the
  * draggable selection bubble built in. Icon-only, per the Figma nav bar
@@ -12,10 +10,9 @@ import { useTheme } from '@/hooks/use-theme';
  * from the Figma SVGs by `npm run icons:nav`.
  */
 export function AppTabs() {
-  const c = useTheme();
-
   return (
-    <NativeTabs tintColor={c.primary}>
+    // Selected icon is white, as in the Figma nav bar.
+    <NativeTabs tintColor="#FFFFFF">
       <NativeTabs.Trigger name="index">
         <NativeTabs.Trigger.Icon
           renderingMode="template"
