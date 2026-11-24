@@ -1,6 +1,12 @@
+import BottomSheet, {
+  BottomSheetScrollView,
+  type BottomSheetBackgroundProps,
+} from '@gorhom/bottom-sheet';
+import { BlurView } from 'expo-blur';
 import { Image } from 'expo-image';
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 
 import { Allo } from '@/constants/fonts';
@@ -18,77 +24,129 @@ const BAR_WIDTH = 340;
 const BAR_HEIGHT = 12;
 
 /**
- * The dark "Care Overview" panel at the bottom of the home screen (Figma
- * frame 49081, 169:71): title, Today/Upcoming/Completed switch, and task
- * progress. The two empty cards are placeholders in the design too.
+ * The design has two empty task cards. Repeat them until real tasks exist, so
+ * there's enough in the sheet to scroll.
  */
-export function CareOverview({
+const PLACEHOLDER_CARD_ROWS = 8;
+
+/** Space under the content for the floating tab bar. */
+const TAB_BAR_CLEARANCE = 90;
+
+/**
+ * The dark "Care Overview" panel at the bottom of the home screen (Figma
+ * frame 49081, 169:71), as a sheet: it rests where the design puts it, swipes
+ * up to just under the header, and scrolls once it's open.
+ */
+export function CareOverviewSheet({
   tasks,
-  style,
+  restingTop,
+  openTop,
 }: {
   tasks: { completed: number; total: number };
-  style?: StyleProp<ViewStyle>;
+  /** Screen y of the sheet's top edge at rest. */
+  restingTop: number;
+  /** Screen y of the sheet's top edge when swiped up. */
+  openTop: number;
 }) {
+  const { height: windowHeight } = useWindowDimensions();
+  const { bottom: safeBottom } = useSafeAreaInsets();
   const [segment, setSegment] = useState<Segment>('today');
   const progress = tasks.total > 0 ? tasks.completed / tasks.total : 0;
   const fillWidth = Math.max(BAR_HEIGHT, BAR_WIDTH * progress);
 
   return (
-    <View style={[styles.panel, style]}>
-      <Image source={require('../../assets/home/sheet-handle.png')} style={styles.handle} />
-
-      <View style={styles.titleRow}>
-        <Text style={styles.title}>Care Overview</Text>
-        <Image source={require('../../assets/home/calendar-heart.png')} style={styles.titleIcon} />
-      </View>
-
-      <View style={styles.segments}>
-        {SEGMENTS.map(({ key, label, width }) => {
-          const selected = key === segment;
-          return (
-            <Pressable
-              key={key}
-              onPress={() => setSegment(key)}
-              accessibilityRole="tab"
-              accessibilityState={{ selected }}
-              style={[styles.segment, { width }, selected && styles.segmentSelected]}
-            >
-              <Text style={[styles.segmentLabel, selected && styles.segmentLabelSelected]}>
-                {label}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </View>
-
-      <View style={styles.section}>
-        <View style={styles.progressHeader}>
-          <View style={{ gap: 3 }}>
-            <Text style={styles.progressTitle}>Progress</Text>
-            <Text style={styles.progressSubtitle}>Tasks completed</Text>
-          </View>
-          <Text style={styles.progressCount}>
-            {tasks.completed}/{tasks.total}
-          </Text>
-        </View>
-
-        <View style={styles.bar}>
-          <View style={styles.barTrack} />
-          <ProgressFill width={fillWidth} />
-          <Text style={[styles.barEnd, { left: 0 }]}>0</Text>
-          <Text style={[styles.barEnd, { right: 0 }]}>{tasks.total}</Text>
-          {/* Marker tip sits under the end of the fill, as in Figma. */}
+    <BottomSheet
+      index={0}
+      snapPoints={[windowHeight - restingTop, windowHeight - openTop]}
+      enableDynamicSizing={false}
+      // Never closes: the rest position is the lowest it goes.
+      enablePanDownToClose={false}
+      backgroundComponent={SheetBackground}
+      handleComponent={SheetHandle}
+    >
+      <BottomSheetScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: safeBottom + TAB_BAR_CLEARANCE }}
+      >
+        <View style={styles.titleRow}>
+          <Text style={styles.title}>Care Overview</Text>
           <Image
-            source={require('../../assets/home/progress-marker.png')}
-            style={[styles.marker, { left: fillWidth - 5.4 }]}
+            source={require('../../assets/home/calendar-heart.png')}
+            style={styles.titleIcon}
           />
         </View>
 
-        <View style={styles.cards}>
-          <View style={styles.card} />
-          <View style={styles.card} />
+        <View style={styles.segments}>
+          {SEGMENTS.map(({ key, label, width }) => {
+            const selected = key === segment;
+            return (
+              <Pressable
+                key={key}
+                onPress={() => setSegment(key)}
+                accessibilityRole="tab"
+                accessibilityState={{ selected }}
+                style={[styles.segment, { width }, selected && styles.segmentSelected]}
+              >
+                <Text style={[styles.segmentLabel, selected && styles.segmentLabelSelected]}>
+                  {label}
+                </Text>
+              </Pressable>
+            );
+          })}
         </View>
-      </View>
+
+        <View style={styles.section}>
+          <View style={styles.progressHeader}>
+            <View style={{ gap: 3 }}>
+              <Text style={styles.progressTitle}>Progress</Text>
+              <Text style={styles.progressSubtitle}>Tasks completed</Text>
+            </View>
+            <Text style={styles.progressCount}>
+              {tasks.completed}/{tasks.total}
+            </Text>
+          </View>
+
+          <View style={styles.bar}>
+            <View style={styles.barTrack} />
+            <ProgressFill width={fillWidth} />
+            <Text style={[styles.barEnd, { left: 0 }]}>0</Text>
+            <Text style={[styles.barEnd, { right: 0 }]}>{tasks.total}</Text>
+            {/* Marker tip sits under the end of the fill, as in Figma. */}
+            <Image
+              source={require('../../assets/home/progress-marker.png')}
+              style={[styles.marker, { left: fillWidth - 5.4 }]}
+            />
+          </View>
+
+          {Array.from({ length: PLACEHOLDER_CARD_ROWS }, (_, row) => (
+            <View key={row} style={styles.cards}>
+              <View style={styles.card} />
+              <View style={styles.card} />
+            </View>
+          ))}
+        </View>
+      </BottomSheetScrollView>
+    </BottomSheet>
+  );
+}
+
+/**
+ * Figma's 60% charcoal panel. The blur underneath keeps the gauge from
+ * reading through once the sheet is swiped up over it; at rest it sits on an
+ * already-blurred part of the photo, so it looks as designed.
+ */
+function SheetBackground({ style }: BottomSheetBackgroundProps) {
+  return (
+    <View pointerEvents="none" style={[style, styles.background]}>
+      <BlurView intensity={50} tint="dark" style={StyleSheet.absoluteFill} />
+    </View>
+  );
+}
+
+function SheetHandle() {
+  return (
+    <View style={styles.handleArea}>
+      <Image source={require('../../assets/home/sheet-handle.png')} style={styles.handle} />
     </View>
   );
 }
@@ -124,25 +182,29 @@ const CARD_FILL = 'rgba(55, 55, 55, 0.24)';
 const CARD_BORDER = 'rgba(65, 65, 65, 0.2)';
 
 const styles = StyleSheet.create({
-  panel: {
+  background: {
     backgroundColor: 'rgba(18, 18, 18, 0.6)',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    borderBottomLeftRadius: 15.688,
-    borderBottomRightRadius: 15.688,
-    minHeight: 362,
+    overflow: 'hidden',
+  },
+  // The handle's touch area runs from the sheet's top edge to the title, so
+  // the whole strip can be grabbed.
+  handleArea: {
+    paddingTop: 11,
+    paddingBottom: 4,
   },
   handle: {
     width: 33,
     height: 4,
     alignSelf: 'center',
-    marginTop: 11,
   },
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 16,
+    // 16pt below the handle in Figma; the handle area already holds 4 of it.
+    marginTop: 12,
     marginHorizontal: 17,
     height: 23,
   },
