@@ -45,7 +45,7 @@
     "typecheck": "tsc --noEmit",
     "build:ios": "eas build --profile development --platform ios",
     "build:ios:sim": "eas build --profile development-simulator --platform ios",
-    "icons:nav": "node ./scripts/generate-nav-icons.js"
+    "svgs": "node ./scripts/rasterize-svgs.js"
   },
   "private": true
 }

@@ -1,84 +1,56 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { GlassCard } from '@/components/glass-card';
-import { PlantCard } from '@/components/plant-card';
-import { Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
-import { MOCK_PLANTS, moistureStatus } from '@/lib/mock-plants';
+import { CareOverview } from '@/components/home/care-overview';
+import { HealthGauge } from '@/components/home/health-gauge';
+import { HomeBackground } from '@/components/home/home-background';
+import { HomeHeader } from '@/components/home/home-header';
+import { StatCards } from '@/components/home/stat-cards';
+import { MOCK_GARDEN } from '@/lib/mock-garden';
 
+/**
+ * Home (Figma: WP-Version-Blackhawk-Mobile, 169:65). The photo backdrop stays
+ * put while the content scrolls over it. Vertical gaps are the Figma ones.
+ */
 export default function HomeScreen() {
-  const c = useTheme();
-  const thirsty = MOCK_PLANTS.filter((p) => moistureStatus(p.reading.moisture) !== 'good').length;
+  const insets = useSafeAreaInsets();
+  const garden = MOCK_GARDEN;
 
   return (
-    <View style={[styles.root, { backgroundColor: c.background }]}>
-      {/* Soft colour behind the glass — Liquid Glass over a flat fill just
-          looks grey, it needs something to bend. */}
-      <View style={[styles.glow, { backgroundColor: c.glow1, top: -80, left: -60 }]} />
-      <View style={[styles.glow, { backgroundColor: c.glow2, top: 260, right: -120 }]} />
-      <View style={[styles.glow, { backgroundColor: c.glow3, bottom: -60, left: -40 }]} />
+    <View style={styles.root}>
+      {/* White status bar over the dark photo, whatever the system scheme. */}
+      <StatusBar style="light" />
+      <HomeBackground />
 
-      {/* Automatic insets keep content clear of the status bar and the
-          native tab bar, without measuring either. */}
       <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        contentContainerStyle={{
-          paddingTop: Spacing.three,
-          paddingBottom: Spacing.four,
-          paddingHorizontal: Spacing.three,
-          gap: Spacing.three,
-        }}
+        contentInsetAdjustmentBehavior="never"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={[
+          styles.content,
+          // Figma's header is 12pt below a 44pt status bar.
+          { paddingTop: insets.top + 12 },
+        ]}
       >
-        <View>
-          <Text style={[styles.eyebrow, { color: c.textSecondary }]}>Perch</Text>
-          <Text style={[styles.title, { color: c.textPrimary }]}>My Garden</Text>
+        <HomeHeader />
+        <View style={{ marginTop: 71 }}>
+          <HealthGauge score={garden.health} />
         </View>
-
-        <GlassCard style={styles.summary}>
-          <Summary value={MOCK_PLANTS.length} label="Plants" />
-          <Summary value={thirsty} label="Need water" />
-          <Summary value={MOCK_PLANTS.length} label="Sensors" />
-        </GlassCard>
-
-        {MOCK_PLANTS.map((plant) => (
-          <PlantCard key={plant.id} plant={plant} />
-        ))}
+        <View style={{ marginTop: 51 }}>
+          <StatCards plants={garden.plants} thriving={garden.thriving} needCare={garden.needCare} />
+        </View>
+        <CareOverview
+          tasks={garden.tasks}
+          // Grows to the bottom of the screen; the padding keeps its contents
+          // clear of the floating tab bar.
+          style={{ marginTop: 57, flexGrow: 1, paddingBottom: insets.bottom + 90 }}
+        />
       </ScrollView>
     </View>
   );
 }
 
-function Summary({ value, label }: { value: number; label: string }) {
-  const c = useTheme();
-  return (
-    <View style={styles.summaryItem}>
-      <Text style={[styles.summaryValue, { color: c.textPrimary }]}>{value}</Text>
-      <Text style={[styles.summaryLabel, { color: c.textSecondary }]}>{label}</Text>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
-  root: { flex: 1, overflow: 'hidden' },
-  glow: {
-    position: 'absolute',
-    width: 320,
-    height: 320,
-    borderRadius: 160,
-    opacity: 0.7,
-  },
-  eyebrow: {
-    fontSize: 13,
-    fontWeight: '600',
-    letterSpacing: 1.5,
-    textTransform: 'uppercase',
-  },
-  title: { fontSize: 34, fontWeight: '700', marginTop: 2 },
-  summary: {
-    flexDirection: 'row',
-    paddingVertical: Spacing.three,
-  },
-  summaryItem: { flex: 1, alignItems: 'center' },
-  summaryValue: { fontSize: 26, fontWeight: '700' },
-  summaryLabel: { fontSize: 12, marginTop: 2 },
+  root: { flex: 1, backgroundColor: '#000000' },
+  content: { flexGrow: 1 },
 });
