@@ -17,6 +17,7 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 
+import { stopProps, type GradientStop } from '@/components/gradient';
 import { Allo } from '@/constants/fonts';
 
 const SEGMENTS = [
@@ -173,12 +174,7 @@ export function CareOverviewSheet({
  */
 function SheetBackground({ style, animatedIndex }: BottomSheetBackgroundProps) {
   const radiusStyle = useAnimatedStyle(() => {
-    const radius = interpolate(
-      animatedIndex.get(),
-      [0, 1],
-      [TOP_RADIUS, 0],
-      Extrapolation.CLAMP,
-    );
+    const radius = interpolate(animatedIndex.get(), [0, 1], [TOP_RADIUS, 0], Extrapolation.CLAMP);
     return { borderTopLeftRadius: radius, borderTopRightRadius: radius };
   });
   return (
@@ -208,16 +204,22 @@ function FadingHandle({ animatedIndex }: { animatedIndex: SharedValue<number> })
   );
 }
 
+const PROGRESS_STOPS: GradientStop[] = [
+  { offset: 0, color: 'rgba(221, 116, 68, 0.7)' },
+  { offset: 0.34135, color: 'rgba(245, 176, 80, 0.7)' },
+  { offset: 0.58173, color: 'rgba(168, 213, 181, 0.7)' },
+  { offset: 0.9375, color: 'rgba(201, 160, 220, 0.7)' },
+];
+
 /** The rainbow fill: Figma's four-stop gradient at 70%, with a 1pt rust border. */
 function ProgressFill({ width }: { width: number }) {
   return (
     <Svg width={width} height={BAR_HEIGHT} style={styles.fill}>
       <Defs>
         <LinearGradient id="careProgress" x1="0" y1="0" x2="1" y2="0">
-          <Stop offset={0} stopColor="rgba(221, 116, 68, 0.7)" />
-          <Stop offset={0.34135} stopColor="rgba(245, 176, 80, 0.7)" />
-          <Stop offset={0.58173} stopColor="rgba(168, 213, 181, 0.7)" />
-          <Stop offset={0.9375} stopColor="rgba(201, 160, 220, 0.7)" />
+          {PROGRESS_STOPS.map((stop) => (
+            <Stop key={stop.offset} offset={stop.offset} {...stopProps(stop.color)} />
+          ))}
         </LinearGradient>
       </Defs>
       <Rect
