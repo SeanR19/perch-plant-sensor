@@ -40,7 +40,10 @@ const PLACEHOLDER_CARD_ROWS = 8;
 /** Space under the content for the floating tab bar. */
 const TAB_BAR_CLEARANCE = 90;
 
-/** Sheet top corners at rest, as in Figma. They flatten once it's full screen. */
+/**
+ * Sheet top corners at rest, as in Figma. They square off steadily over the
+ * whole swipe up, reaching 0 as the sheet meets the top of the screen.
+ */
 const TOP_RADIUS = 20;
 /** Handle strip: 11pt above the 4pt bar, 4pt below. */
 const HANDLE_AREA_HEIGHT = 11 + 4 + 4;
@@ -50,9 +53,9 @@ const TITLE_GAP = 12;
 const OPEN_TITLE_GAP = 16;
 /**
  * The last stretch of the swipe up — as a fraction of the way between the two
- * snap points — over which the handle fades and the corners flatten.
+ * snap points — over which the handle fades out.
  */
-const TOP_TRANSITION: [number, number] = [0.85, 1];
+const HANDLE_FADE: [number, number] = [0.85, 1];
 
 /**
  * The dark "Care Overview" panel at the bottom of the home screen (Figma
@@ -172,7 +175,7 @@ function SheetBackground({ style, animatedIndex }: BottomSheetBackgroundProps) {
   const radiusStyle = useAnimatedStyle(() => {
     const radius = interpolate(
       animatedIndex.get(),
-      TOP_TRANSITION,
+      [0, 1],
       [TOP_RADIUS, 0],
       Extrapolation.CLAMP,
     );
@@ -196,7 +199,7 @@ function SheetHandle({ animatedIndex }: BottomSheetHandleProps) {
 
 function FadingHandle({ animatedIndex }: { animatedIndex: SharedValue<number> }) {
   const fadeStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(animatedIndex.get(), TOP_TRANSITION, [1, 0], Extrapolation.CLAMP),
+    opacity: interpolate(animatedIndex.get(), HANDLE_FADE, [1, 0], Extrapolation.CLAMP),
   }));
   return (
     <Animated.View style={fadeStyle}>
