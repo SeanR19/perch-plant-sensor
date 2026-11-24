@@ -2,6 +2,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GlassCard } from '@/components/glass-card';
+import { useNavBarInset } from '@/components/nav-bar';
 import { PlantCard } from '@/components/plant-card';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -10,6 +11,7 @@ import { MOCK_PLANTS, moistureStatus } from '@/lib/mock-plants';
 export default function HomeScreen() {
   const c = useTheme();
   const insets = useSafeAreaInsets();
+  const navBarInset = useNavBarInset();
   const thirsty = MOCK_PLANTS.filter((p) => moistureStatus(p.reading.moisture) !== 'good').length;
 
   return (
@@ -23,7 +25,7 @@ export default function HomeScreen() {
       <ScrollView
         contentContainerStyle={{
           paddingTop: insets.top + Spacing.three,
-          paddingBottom: insets.bottom + Spacing.five,
+          paddingBottom: navBarInset + Spacing.four,
           paddingHorizontal: Spacing.three,
           gap: Spacing.three,
         }}

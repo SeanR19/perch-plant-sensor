@@ -62,3 +62,10 @@ export const Spacing = {
   four: 24,
   five: 32,
 } as const;
+
+/** Nav bar, straight from Figma (90:1269). Same in both schemes for now. */
+export const NavBarColors = {
+  fill: 'rgba(143, 143, 143, 0.14)',
+  selection: '#D9D9D9',
+  icon: '#FFFFFF',
+} as const;
