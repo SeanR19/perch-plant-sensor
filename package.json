@@ -5,7 +5,7 @@
   "dependencies": {
     "@expo/ui": "~57.0.26",
     "@gorhom/bottom-sheet": "^5.2.14",
-    "expo": "~57.0.33",
+    "expo": "~57.0.34",
     "expo-blur": "~57.0.3",
     "expo-constants": "~57.0.25",
     "expo-dev-client": "~57.0.22",
@@ -19,6 +19,7 @@
     "expo-status-bar": "~57.0.1",
     "expo-symbols": "~57.0.3",
     "expo-system-ui": "~57.0.4",
+    "expo-updates": "~57.0.29",
     "expo-web-browser": "~57.0.3",
     "lucide-react-native": "^1.78.0",
     "react": "19.2.3",
@@ -46,7 +47,9 @@
     "typecheck": "tsc --noEmit",
     "build:ios": "eas build --profile development --platform ios",
     "build:ios:sim": "eas build --profile development-simulator --platform ios",
-    "svgs": "node ./scripts/rasterize-svgs.js"
+    "svgs": "node ./scripts/rasterize-svgs.js",
+    "build:ios:preview": "eas build --profile preview --platform ios",
+    "update:preview": "APP_VARIANT=preview eas update --channel preview --platform ios"
   },
   "private": true
 }

@@ -12,6 +12,9 @@
       "bundleIdentifier": "com.seanhammond.perch-plant-sensor-app",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
+      },
+      "runtimeVersion": {
+        "policy": "fingerprint"
       }
     },
     "android": {
@@ -48,6 +51,9 @@
       "eas": {
         "projectId": "6a1fc721-05b1-434c-a4d1-7b1c96388ebe"
       }
+    },
+    "updates": {
+      "url": "https://u.expo.dev/6a1fc721-05b1-434c-a4d1-7b1c96388ebe"
     }
   }
 }
